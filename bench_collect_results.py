@@ -157,7 +157,7 @@ def main(args):
             
         outfile = os.path.join(outfile_path_prefix, implementations[idx] + '-' + outfile_postfix)
         print("----------------------------------------------------------------------------------------------")
-        print("Testing implementation '{}'. Saving results into '{}'".format(implementations[idx],outfile)
+        print("Testing implementation '{}'. Saving results into '{}'".format(implementations[idx],outfile))
         
         print("Will run tests for {} different number of threads".format(len(thread_values)))
         success = success + run_benchmark(outfile,thread_values,implementations[idx])
