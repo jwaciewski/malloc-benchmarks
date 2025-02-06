@@ -16,12 +16,13 @@ internal_benchmark_util = 'benchmark-src/bench-malloc-thread'
 glibc_install_dir = 'glibc-install'
 tcmalloc_install_dir = 'tcmalloc-install'
 jemalloc_install_dir = 'jemalloc-install'
+labmalloc_install_dir = 'laballoc-install'
 
 impl_preload_libs = {
     'system_default':'',
     'glibc': '',
-    
-    # to test tcmalloc and jemalloc implementations we simply use the LD_PRELOAD trick:
+    # to test tcmalloc, jemalloc and laballoc implementations we simply use the LD_PRELOAD trick:
+    'laballoc': labmalloc_install_dir + '/lib/liballoc.so',
     'tcmalloc': tcmalloc_install_dir + '/lib/libtcmalloc.so',
     'jemalloc': jemalloc_install_dir + '/lib/libjemalloc.so'
 }
@@ -36,7 +37,7 @@ benchmark_util = {
     # to test the latest GNU libc implementation downloaded and compiled locally we use another trick:
     # we ask the dynamic linker of the just-built GNU libc to run the benchmarking utility using new GNU libc dyn libs: 
     'glibc': glibc_install_dir + '/lib/ld-linux-x86-64.so.2 --library-path ' + glibc_install_dir + '/lib ' + internal_benchmark_util,
-    
+    'laballoc': internal_benchmark_util,
     'tcmalloc': internal_benchmark_util,
     'jemalloc': internal_benchmark_util
 }
@@ -63,15 +64,16 @@ def find_no_symlink(name, paths):
 def check_requirements():
     global preload_required_libs_fullpaths, impl_preload_libs, benchmark_util
     
-#     for util in benchmark_util.values():
-#         if not os.path.isfile(util):
-#             print("Could not find required benchmarking utility {}".format(util))
-#             sys.exit(2)
-#         print("Found required benchmarking utility {}".format(util))
+    #for util in benchmark_util.values():
+    #     if not os.path.isfile(util):
+    #         print("Could not find required benchmarking utility {}".format(util))
+    #         sys.exit(2)
+    #     print("Found required benchmarking utility {}".format(util))
     if not os.path.isfile(internal_benchmark_util):
         print("Could not find required benchmarking utility {}".format(internal_benchmark_util))
         sys.exit(2)
     print("Found required benchmarking utility {}".format(internal_benchmark_util))
+    
 
     for preloadlib in impl_preload_libs.values():
         if len(preloadlib)>0:
@@ -81,7 +83,7 @@ def check_requirements():
             print("Found required lib {}".format(preloadlib))
 
     for reqlib in preload_required_libs:
-        full_path = find_no_symlink(reqlib, ['/usr/lib', '/lib', '/lib64'])
+        full_path = find_no_symlink(reqlib, ['/usr/lib64', '/usr/lib', '/lib', '/lib64'])
         if len(full_path)==0:
             print("Could not find required shared library {}".format(reqlib))
             sys.exit(2)
@@ -107,7 +109,7 @@ def run_benchmark(outfile,thread_values,impl_name):
             os.environ["LD_PRELOAD"] = impl_preload_libs[impl_name]
             if len(os.environ["LD_PRELOAD"])>0:
                 # the tcmalloc/jemalloc shared libs require in turn C++ libs:
-                #print "preload_required_libs_fullpaths is:", preload_required_libs_fullpaths
+                print("preload_required_libs_fullpaths is:", preload_required_libs_fullpaths)
                 for lib in preload_required_libs_fullpaths:
                     os.environ["LD_PRELOAD"] = os.environ["LD_PRELOAD"] + ':' + lib
                     

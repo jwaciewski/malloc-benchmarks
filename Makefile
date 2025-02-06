@@ -57,7 +57,7 @@ ifdef IMPLEMENTATIONS
 implem_list := $(IMPLEMENTATIONS)
 else
 # default value
-implem_list := system_default glibc tcmalloc jemalloc
+implem_list := system_default glibc tcmalloc jemalloc laballoc
 endif
 
 
