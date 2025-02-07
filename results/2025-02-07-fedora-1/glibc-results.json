@@ -1,0 +1,81 @@
+[{
+ "timing_type": "hp_timing",
+ "functions": {
+  "malloc": {
+   "": {
+    "duration": 1.79709e+11,
+    "iterations": 2.7697e+09,
+    "time_per_iteration": 64.8842,
+    "max_rss": 1460,
+    "threads": 1,
+    "min_size": 4,
+    "max_size": 32768,
+    "random_seed": 88
+   }
+  }
+ }
+},{
+ "timing_type": "hp_timing",
+ "functions": {
+  "malloc": {
+   "": {
+    "duration": 3.59419e+11,
+    "iterations": 4.2587e+09,
+    "time_per_iteration": 84.3963,
+    "max_rss": 1820,
+    "threads": 2,
+    "min_size": 4,
+    "max_size": 32768,
+    "random_seed": 88
+   }
+  }
+ }
+},{
+ "timing_type": "hp_timing",
+ "functions": {
+  "malloc": {
+   "": {
+    "duration": 7.18837e+11,
+    "iterations": 7.43665e+09,
+    "time_per_iteration": 96.6613,
+    "max_rss": 2504,
+    "threads": 4,
+    "min_size": 4,
+    "max_size": 32768,
+    "random_seed": 88
+   }
+  }
+ }
+},{
+ "timing_type": "hp_timing",
+ "functions": {
+  "malloc": {
+   "": {
+    "duration": 1.43766e+12,
+    "iterations": 1.09758e+10,
+    "time_per_iteration": 130.985,
+    "max_rss": 2752,
+    "threads": 8,
+    "min_size": 4,
+    "max_size": 32768,
+    "random_seed": 88
+   }
+  }
+ }
+},{
+ "timing_type": "hp_timing",
+ "functions": {
+  "malloc": {
+   "": {
+    "duration": 2.8753e+12,
+    "iterations": 1.5311e+10,
+    "time_per_iteration": 187.793,
+    "max_rss": 4060,
+    "threads": 16,
+    "min_size": 4,
+    "max_size": 32768,
+    "random_seed": 88
+   }
+  }
+ }
+}]

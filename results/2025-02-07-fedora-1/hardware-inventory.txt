@@ -1,0 +1,25 @@
+H/W path        Device          Class          Description
+==========================================================
+/0/0                            memory         64KiB BIOS
+/0/b                            memory         16GiB System Memory
+/0/b/0                          memory         8GiB SODIMM Synchronous 4800 MHz (0.2 ns)
+/0/b/1                          memory         8GiB SODIMM Synchronous 4800 MHz (0.2 ns)
+/0/19                           memory         288KiB L1 cache
+/0/1a                           memory         192KiB L1 cache
+/0/1b                           memory         7680KiB L2 cache
+/0/1c                           memory         24MiB L3 cache
+/0/1d                           memory         256KiB L1 cache
+/0/1e                           memory         512KiB L1 cache
+/0/1f                           memory         4MiB L2 cache
+/0/20                           memory         24MiB L3 cache
+/0/21                           processor      13th Gen Intel(R) Core(TM) i9-13900H
+/0/100/14.2                     memory         RAM memory
+Number of CPU cores: 20
+NUMA informations:
+available: 1 nodes (0)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+node 0 size: 15605 MB
+node 0 free: 1956 MB
+node distances:
+node     0 
+   0:   10 
