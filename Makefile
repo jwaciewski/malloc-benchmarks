@@ -50,7 +50,7 @@ ifdef RESULT_DIRNAME
 results_dir := $(RESULT_DIRNAME)
 else
 # default value
-results_dir := results/$(shell date +%F)-$(benchmark_postfix)
+results_dir := results/$(shell date +%F)-$(benchmark_postfix)-1
 endif
 
 ifdef IMPLEMENTATIONS
@@ -59,9 +59,6 @@ else
 # default value
 implem_list := system_default glibc tcmalloc jemalloc laballoc
 endif
-
-
-
 
 #
 # Constants
@@ -167,11 +164,13 @@ collect_results:
 	@(which numactl >/dev/null 2>&1) && numactl -H >>$(results_dir)/hardware-inventory.txt
 
 plot_results:
-	./bench_plot_results.py $(results_dir)/$(benchmark_result_png) $(results_dir)/*.json
+	./bench_plot_results.py $(results_dir)/all.png $(results_dir)/*.json
+	./bench_plot_results.py $(results_dir)/laballoc.png $(results_dir)/laballoc*.json
+	./bench_plot_results.py $(results_dir)/common.png $(results_dir)/jemalloc*.json $(results_dir)/tcmalloc*.json $(results_dir)/system_default*.json $(results_dir)/glibc*.json
 
 # the following target is mostly useful only to the maintainer of the github project:
 upload_results:
-	git add -f $(results_dir)/*$(benchmark_result_json) $(results_dir)/$(benchmark_result_png) $(results_dir)/hardware-inventory.txt
+	git add -f $(results_dir)/*$(benchmark_result_json) $(results_dir)/*.png $(results_dir)/hardware-inventory.txt
 	git commit -m "Adding results from folder $(results_dir) to the GIT repository"
 	@echo "Run 'git push' to push online your results (required GIT repo write access)"
 

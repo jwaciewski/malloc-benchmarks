@@ -12,6 +12,8 @@ import subprocess
 #
 
 internal_benchmark_util = 'benchmark-src/bench-malloc-thread'
+internal_benchmark_util_lab = 'benchmark-src/bench-malloc-thread-lab'
+
 
 glibc_install_dir = 'glibc-install'
 tcmalloc_install_dir = 'tcmalloc-install'
@@ -37,7 +39,7 @@ benchmark_util = {
     # to test the latest GNU libc implementation downloaded and compiled locally we use another trick:
     # we ask the dynamic linker of the just-built GNU libc to run the benchmarking utility using new GNU libc dyn libs: 
     'glibc': glibc_install_dir + '/lib/ld-linux-x86-64.so.2 --library-path ' + glibc_install_dir + '/lib ' + internal_benchmark_util,
-    'laballoc': internal_benchmark_util,
+    'laballoc': internal_benchmark_util_lab,
     'tcmalloc': internal_benchmark_util,
     'jemalloc': internal_benchmark_util
 }
@@ -73,7 +75,10 @@ def check_requirements():
         print("Could not find required benchmarking utility {}".format(internal_benchmark_util))
         sys.exit(2)
     print("Found required benchmarking utility {}".format(internal_benchmark_util))
-    
+    if not os.path.isfile(internal_benchmark_util_lab):
+        print("Could not find required benchmarking utility {}".format(internal_benchmark_util_lab))
+        sys.exit(2)
+    print("Found required benchmarking utility {}".format(internal_benchmark_util_lab))
 
     for preloadlib in impl_preload_libs.values():
         if len(preloadlib)>0:
@@ -90,7 +95,7 @@ def check_requirements():
         print("Found required lib {}".format(full_path))
         preload_required_libs_fullpaths.append(full_path)
 
-def run_benchmark(outfile,thread_values,impl_name):
+def run_benchmark(outfile,thread_values,impl_name,sched_strat):
     global preload_required_libs_fullpaths, impl_preload_libs
     
     if impl_name not in impl_preload_libs:
@@ -107,22 +112,33 @@ def run_benchmark(outfile,thread_values,impl_name):
 
         try:
             os.environ["LD_PRELOAD"] = impl_preload_libs[impl_name]
-            if len(os.environ["LD_PRELOAD"])>0:
+            if impl_name == "tcmalloc" or impl_name == "jemalloc":
                 # the tcmalloc/jemalloc shared libs require in turn C++ libs:
                 print("preload_required_libs_fullpaths is:", preload_required_libs_fullpaths)
                 for lib in preload_required_libs_fullpaths:
                     os.environ["LD_PRELOAD"] = os.environ["LD_PRELOAD"] + ':' + lib
                     
             utility_fname = benchmark_util[impl_name]
-                    
-                    
-            # run the external benchmark utility with the LD_PRELOAD trick
-            print("Running for nthreads={}:\n   LD_PRELOAD='{}' {} {}".format(nthreads,os.environ["LD_PRELOAD"],utility_fname,nthreads))
-            
-            # the subprocess.check_output() method does not seem to work fine when launching
-            # the ld-linux-x86-64.so.2 with --library-path
-            #stdout = subprocess.check_output([utility_fname, nthreads])
-            os.system("{} {} >/tmp/benchmark-output".format(utility_fname,nthreads))
+                                
+            if not sched_strat:
+
+                # run the external benchmark utility with the LD_PRELOAD trick
+                print("Running for nthreads={}:\n   LD_PRELOAD='{}'\n   {} {}".format(nthreads,os.environ["LD_PRELOAD"],utility_fname,nthreads))
+
+                # the subprocess.check_output() method does not seem to work fine when launching
+                # the ld-linux-x86-64.so.2 with --library-path
+                #stdout = subprocess.check_output([utility_fname, nthreads])
+                os.system("{} {} >/tmp/benchmark-output".format(utility_fname,nthreads))
+            else:
+
+                # run the external benchmark utility with the LD_PRELOAD trick
+                print("Running for nthreads={}:\n   LD_PRELOAD='{}'\n   {} {} {}".format(nthreads,os.environ["LD_PRELOAD"],utility_fname,nthreads, sched_strat))
+
+                # the subprocess.check_output() method does not seem to work fine when launching
+                # the ld-linux-x86-64.so.2 with --library-path
+                #stdout = subprocess.check_output([utility_fname, nthreads])
+                os.system("{} {} {} >/tmp/benchmark-output".format(utility_fname, nthreads, sched_strat))
+
             stdout = open('/tmp/benchmark-output', 'r').read()
 
             # produce valid JSON output:
@@ -156,13 +172,29 @@ def main(args):
         if implementations[idx] not in impl_preload_libs:
             print("Unknown settings required for testing implementation '{}'".format(implementations[idx]))
             sys.exit(3)
-            
-        outfile = os.path.join(outfile_path_prefix, implementations[idx] + '-' + outfile_postfix)
+
         print("----------------------------------------------------------------------------------------------")
-        print("Testing implementation '{}'. Saving results into '{}'".format(implementations[idx],outfile))
-        
+        print("Testing implementation '{}'".format(implementations[idx]))
         print("Will run tests for {} different number of threads".format(len(thread_values)))
-        success = success + run_benchmark(outfile,thread_values,implementations[idx])
+
+        if implementations[idx] != "laballoc":
+            outfile = os.path.join(outfile_path_prefix, implementations[idx] + '-' + outfile_postfix)
+            print("Saving results into '{}'".format(outfile))
+            
+            success = success + run_benchmark(outfile,thread_values,implementations[idx], None)
+        else:
+            print("laballoc detected. Running test cases for first_fit, next_fit, worst_fit, best_fit")
+            alloc_strats = ["first_fit", "next_fit", "best_fit", "worst_fit"]
+
+            for strat in alloc_strats:
+                print("Running scheduling for strategy %s".format(strat))
+                print("##############################################################################################")
+
+                outfile = os.path.join(outfile_path_prefix, implementations[idx] + '-' + strat + '-' + outfile_postfix)
+                print("----------------------------------------------------------------------------------------------")
+                print("Saving results into '{}'".format(implementations[idx],outfile))
+                
+                success = success + run_benchmark(outfile,thread_values,implementations[idx], strat)
 
     print("----------------------------------------------------------------------------------------------")
     return success
