@@ -24,7 +24,7 @@ impl_preload_libs = {
     'system_default':'',
     'glibc': '',
     # to test tcmalloc, jemalloc and laballoc implementations we simply use the LD_PRELOAD trick:
-    'laballoc': labmalloc_install_dir + '/lib/liballoc.so',
+    'laballoc': labmalloc_install_dir + '/libimproved2/liballoc.so',
     'tcmalloc': tcmalloc_install_dir + '/lib/libtcmalloc.so',
     'jemalloc': jemalloc_install_dir + '/lib/libjemalloc.so'
 }

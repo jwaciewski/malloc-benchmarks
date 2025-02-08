@@ -50,14 +50,14 @@ ifdef RESULT_DIRNAME
 results_dir := $(RESULT_DIRNAME)
 else
 # default value
-results_dir := results/$(shell date +%F)-$(benchmark_postfix)-1
+results_dir := results/$(shell date +%F)-$(benchmark_postfix)
 endif
 
 ifdef IMPLEMENTATIONS
 implem_list := $(IMPLEMENTATIONS)
 else
 # default value
-implem_list := system_default glibc tcmalloc jemalloc laballoc
+implem_list := glibc tcmalloc jemalloc laballoc
 endif
 
 #
@@ -153,20 +153,27 @@ endif
 	@echo "Congrats! Successfully built all [$(implem_list)] malloc implementations to test."
 	
 collect_results:
-	@mkdir -p $(results_dir)
-	@echo "Starting to collect performance benchmarks."
-	./bench_collect_results.py "$(implem_list)" $(results_dir)/$(benchmark_result_json) $(benchmark_nthreads)
 	@echo "Collecting hardware information in $(results_dir)/hardware-inventory.txt"
 	@sudo lshw -short -class memory -class processor	> $(results_dir)/hardware-inventory.txt
 	@echo -n "Number of CPU cores: "					>>$(results_dir)/hardware-inventory.txt
 	@grep "processor" /proc/cpuinfo | wc -l				>>$(results_dir)/hardware-inventory.txt
 	@(which numactl >/dev/null 2>&1) && echo "NUMA informations:" >>$(results_dir)/hardware-inventory.txt
 	@(which numactl >/dev/null 2>&1) && numactl -H >>$(results_dir)/hardware-inventory.txt
+	number=2 ; while [[ $$number -le 10 ]] ; do \
+		mkdir -p $(results_dir)/$$number ; \
+		echo "Starting to collect performance benchmarks." ; \
+		./bench_collect_results.py "$(implem_list)" $(results_dir)/$$number/$(benchmark_result_json) $(benchmark_nthreads) ; \
+		((number = number + 1)) ; \
+    	done
 
 plot_results:
-	./bench_plot_results.py $(results_dir)/all.png $(results_dir)/*.json
-	./bench_plot_results.py $(results_dir)/laballoc.png $(results_dir)/laballoc*.json
-	./bench_plot_results.py $(results_dir)/common.png $(results_dir)/jemalloc*.json $(results_dir)/tcmalloc*.json $(results_dir)/system_default*.json $(results_dir)/glibc*.json
+	#./bench_plot_results.py $(results_dir)/allaggreg.png $(results_dir)/*.json
+	#./bench_plot_results.py $(results_dir)/laballocaggreg.png $(results_dir)/laballoc*.json
+	./bench_plot_results.py $(results_dir)/allaggreg.png $(results_dir)/{1..10}/*.json
+	./bench_plot_results.py $(results_dir)/laballocaggreg.png $(results_dir)/{1..10}/laballoc*.json
+	./bench_plot_results.py $(results_dir)/commonaggreg.png $(results_dir)/{1..10}/{jemalloc*,tcmalloc*,glibc*}.json
+	./bench_plot_results.py $(results_dir)/nextcommonaggreg.png $(results_dir)/{1..10}/{jemalloc*,tcmalloc*,glibc*,laballoc-next*}.json
+	#./bench_plot_results.py $(results_dir)/commonaggreg.png $(results_dir)/jemalloc*.json $(results_dir)/tcmalloc*.json $(results_dir)/glibc*.json
 
 # the following target is mostly useful only to the maintainer of the github project:
 upload_results:

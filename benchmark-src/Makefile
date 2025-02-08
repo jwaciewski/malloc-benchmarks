@@ -1,6 +1,6 @@
 TARGETS = bench-malloc-thread bench-malloc-thread-lab
 LIBS = -lpthread
-SHAREDLIBS = ../laballoc-install/lib
+SHAREDLIBS = ../laballoc-install/libimproved
 INCLUDES1 = ../
 INCLUDES2 = ../laballoc-install
 CC = gcc

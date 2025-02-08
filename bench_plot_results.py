@@ -54,8 +54,45 @@ def main(args):
         print('Usage: %s <image-output-file> <file1> <file2> ...' % sys.argv[0])
         sys.exit(os.EX_USAGE)
 
-    bm = {}
+    bm = collections.defaultdict(list)
+
+
+    grouped_tests = {}
+
     for filepath in args[1:]:
+        filename = os.path.basename(filepath)
+        grouped_tests[filename] = []
+        grouped_tests[filename].append(filepath)
+
+    for mallocver in grouped_tests.keys():
+        bmsum = collections.defaultdict(int)
+
+        for file in grouped_tests[mallocver]:
+            with open(file, 'r') as benchfile:
+                print("Parsing '{}'...".format(file))
+                try:
+                    bench_list = json.load(benchfile)
+                except Exception as ex:
+                    print("Invalid JSON file {}: {}".format(file, ex))
+                    sys.exit(2)
+                for bench in bench_list:
+                    print("{}".format(bench['functions']['malloc']['']['threads']))
+                    bmsum[bench['functions']['malloc']['']['threads']] += bench['functions']['malloc']['']['time_per_iteration']
+
+        bmtotal = {nthread: value / len(grouped_tests[mallocver]) for nthread, value in bmsum.items()}
+        for point in bmsum.keys():
+            bm[mallocver].append(BenchmarkPoint(point, bmtotal[point]))
+            
+
+
+            #print json.dumps(bench_list, sort_keys=True, indent=4, separators=(',', ': '))
+
+
+
+    '''
+    for filepath in args[1:]:
+            
+        
         print("Parsing '{}'...".format(filepath))
         with open(filepath, 'r') as benchfile:
             filename = os.path.basename(filepath)
@@ -72,7 +109,7 @@ def main(args):
                 bm[filename].append(BenchmarkPoint(bench['functions']['malloc']['']['threads'], bench['functions']['malloc']['']['time_per_iteration']))
             
             print('Found {} data points in {}...'.format(len(bm[filename]), filepath))
-            
+    '''      
     plot_graphs(args[0], bm)
 
 if __name__ == '__main__':
